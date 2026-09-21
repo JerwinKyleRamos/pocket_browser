@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Pocket Browser</title>
+<meta name="description" content="A running log of the web you meant to come back to." />
+<meta name="theme-color" content="#3F5C46" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+    --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+    --ink: #1B2B22;
+    --ink-soft: #4B584C;
+    --ink-faint: #7A8577;
+    --paper: #ECE6D5;
+    --paper-raised: #F6F2E6;
+    --paper-line: rgba(27,43,34,0.16);
+    --paper-line-soft: rgba(27,43,34,0.09);
+    --moss: #3F5C46;
+    --moss-deep: #2B4433;
+    --brass: #A9782E;
+    --rust: #9C3B29;
+    --focus: #1E66C9;
+
+    --tone-1: #3F5C46;
+    --tone-2: #A9782E;
+    --tone-3: #9C3B29;
+    --tone-4: #4C6E86;
+    --tone-5: #6B4E71;
+    --tone-6: #71792F;
+
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #EAE4D3;
+      --ink-soft: #B7C0B5;
+      --ink-faint: #8B968A;
+      --paper: #141D17;
+      --paper-raised: #1C2820;
+      --paper-line: rgba(234,228,211,0.16);
+      --paper-line-soft: rgba(234,228,211,0.08);
+      --moss: #86AC8F;
+      --moss-deep: #A7C7AE;
+      --brass: #D8A559;
+      --rust: #DE7B67;
+      --tone-1: #7FA98A;
+      --tone-2: #D8A559;
+      --tone-3: #DE7B67;
+      --tone-4: #7FA3BC;
+      --tone-5: #B08CB8;
+      --tone-6: #A6AF5E;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #EAE4D3;
+    --ink-soft: #B7C0B5;
+    --ink-faint: #8B968A;
+    --paper: #141D17;
+    --paper-raised: #1C2820;
+    --paper-line: rgba(234,228,211,0.16);
+    --paper-line-soft: rgba(234,228,211,0.08);
+    --moss: #86AC8F;
+    --moss-deep: #A7C7AE;
+    --brass: #D8A559;
+    --rust: #DE7B67;
+    --tone-1: #7FA98A;
+    --tone-2: #D8A559;
+    --tone-3: #DE7B67;
+    --tone-4: #7FA3BC;
+    --tone-5: #B08CB8;
+    --tone-6: #A6AF5E;
+  }
+
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+
+  a { color: inherit; }
+  button { font-family: inherit; cursor: pointer; }
+  input, select, button { font-size: 15px; }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* ---------- layout shell ---------- */
+  #app { max-width: 980px; margin: 0 auto; padding: 0 20px 64px; }
+
+  .topbar {
+    position: sticky;
+    top: env(safe-area-inset-top, 0px);
+    z-index: 20;
+    background: var(--paper);
+    padding: 22px 0 14px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    border-bottom: 1px solid var(--paper-line);
+  }
+  .brand { display: flex; align-items: flex-start; gap: 12px; }
+  .brand-mark { font-size: 26px; line-height: 1; margin-top: 2px; }
+  .brand h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 27px;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+  .brand .tagline {
+    margin: 4px 0 0;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    max-width: 34ch;
+  }
+
+  .search-wrap { position: relative; width: 260px; max-width: 100%; }
+  .search-wrap svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--ink-faint); pointer-events: none; }
+  #searchInput {
+    width: 100%;
+    padding: 9px 12px 9px 32px;
+    border-radius: 7px;
+    border: 1px solid var(--paper-line);
+    background: var(--paper-raised);
+    color: var(--ink);
+  }
+  #searchInput::placeholder { color: var(--ink-faint); }
+  #searchInput:focus-visible { outline-offset: 0; }
+
+  .install-btn {
+    border: 1px solid var(--paper-line);
+    background: transparent;
+    color: var(--ink-soft);
+    padding: 8px 14px;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .install-btn:hover { border-color: var(--moss); color: var(--moss); }
+
+  /* ---------- capture bar (hero action) ---------- */
+  .capture { padding: 22px 0 8px; }
+  #captureForm {
+    display: flex;
+    gap: 10px;
+    background: var(--paper-raised);
+    border: 1px solid var(--paper-line);
+    border-radius: 10px;
+    padding: 6px 6px 6px 16px;
+    align-items: center;
+  }
+  #captureForm:focus-within { border-color: var(--moss); }
+  #urlInput {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 10px 0;
+    color: var(--ink);
+    font-size: 15.5px;
+    min-width: 0;
+  }
+  #urlInput::placeholder { color: var(--ink-faint); }
+  #urlInput:focus { outline: none; }
+  .file-btn {
+    border: none;
+    background: var(--moss);
+    color: var(--paper-raised);
+    padding: 10px 18px;
+    border-radius: 7px;
+    font-weight: 600;
+    font-size: 14.5px;
+    white-space: nowrap;
+    transition: background-color .15s ease;
+  }
+  .file-btn:hover { background: var(--moss-deep); }
+  .file-btn.filed { background: var(--brass); }
+  .capture-error {
+    color: var(--rust);
+    font-size: 13px;
+    margin: 8px 2px 0;
+  }
+
+  /* ---------- two-column layout ---------- */
+  .layout {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 28px;
+    margin-top: 28px;
+  }
+  @media (max-width: 720px) {
+    .layout { grid-template-columns: 1fr; gap: 18px; }
+  }
+
+  /* ---------- drawer / folder tabs ---------- */
+  .drawer { display: flex; flex-direction: column; gap: 2px; }
+  @media (max-width: 720px) {
+    .drawer {
+      flex-direction: row;
+      overflow-x: auto;
+      padding-bottom: 6px;
+      gap: 8px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .drawer::-webkit-scrollbar { display: none; }
+  }
+
+  .folder-row {
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+  .folder-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    text-align: left;
+    background: transparent;
+    border: none;
+    border-radius: 7px 7px 0 7px;
+    padding: 8px 10px;
+    color: var(--ink-soft);
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  .folder-tab .swatch {
+    width: 8px; height: 8px; border-radius: 50%;
+    flex-shrink: 0;
+    background: var(--ink-faint);
+  }
+  .folder-tab .count {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--ink-faint);
+  }
+  .folder-tab:hover { background: var(--paper-line-soft); color: var(--ink); }
+  .folder-row.active .folder-tab {
+    background: var(--paper-raised);
+    color: var(--ink);
+    font-weight: 600;
+    box-shadow: inset 3px 0 0 var(--moss);
+  }
+  .folder-row.active .folder-tab .count { color: var(--ink-soft); }
+
+  .folder-actions {
+    display: flex;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity .12s ease;
+  }
+  .folder-row:hover .folder-actions,
+  .folder-row:focus-within .folder-actions { opacity: 1; }
+  @media (max-width: 720px) { .folder-actions { display: none; } }
+
+  .icon-btn {
+    border: none;
+    background: transparent;
+    color: var(--ink-faint);
+    padding: 5px;
+    border-radius: 5px;
+    display: flex;
+    line-height: 0;
+  }
+  .icon-btn:hover { color: var(--ink); background: var(--paper-line-soft); }
+  .icon-btn.danger:hover { color: var(--rust); }
+  .icon-btn svg { width: 14px; height: 14px; }
+
+  .new-folder-btn {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    background: transparent;
+    border: 1px dashed var(--paper-line);
+    color: var(--ink-soft);
+    border-radius: 7px;
+    padding: 8px 10px;
+    font-size: 13.5px;
+    white-space: nowrap;
+  }
+  .new-folder-btn:hover { border-color: var(--moss); color: var(--moss); }
+  .new-folder-btn svg { width: 13px; height: 13px; }
+
+  /* ---------- shelf / cards ---------- */
+  .shelf-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .shelf-heading h2 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 19px;
+    margin: 0;
+  }
+  .shelf-heading .n {
+    color: var(--ink-faint);
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+  }
+
+  .shelf { display: flex; flex-direction: column; gap: 10px; }
+
+  .empty-state {
+    border: 1px dashed var(--paper-line);
+    border-radius: 10px;
+    padding: 36px 20px;
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 14.5px;
+    line-height: 1.6;
+  }
+
+  .card {
+    display: flex;
+    gap: 13px;
+    align-items: flex-start;
+    background: var(--paper-raised);
+    border: 1px solid var(--paper-line);
+    border-radius: 8px;
+    padding: 13px 14px;
+    position: relative;
+  }
+  .card.entering { animation: cardIn .32s ease-out; }
+  @keyframes cardIn {
+    from { opacity: 0; transform: translateY(4px) scale(.985); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .card-tag {
+    width: 30px; height: 30px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  .card-body { flex: 1; min-width: 0; }
+  .card-title {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 16.5px;
+    font-weight: 500;
+    text-decoration: none;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .card-title:hover { color: var(--moss-deep); text-decoration: underline; }
+  .card-domain {
+    margin: 3px 0 0;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-soft);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .card-folder-pill {
+    display: inline-block;
+    margin-top: 7px;
+    font-size: 11px;
+    color: var(--ink-faint);
+    border: 1px solid var(--paper-line);
+    border-radius: 20px;
+    padding: 2px 8px;
+  }
+
+  .card-stamp {
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--ink-faint);
+    border: 1px solid var(--paper-line);
+    border-radius: 4px;
+    padding: 3px 6px;
+    transform: rotate(-2deg);
+    white-space: nowrap;
+    align-self: flex-start;
+  }
+
+  .card-controls {
+    display: flex;
+    gap: 2px;
+    flex-shrink: 0;
+    align-self: flex-start;
+  }
+
+  /* ---------- modal ---------- */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(20,29,23,0.45);
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    z-index: 100;
+  }
+  .modal {
+    background: var(--paper-raised);
+    border-radius: 12px;
+    border: 1px solid var(--paper-line);
+    width: 380px;
+    max-width: 100%;
+    padding: 22px;
+  }
+  .modal h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 19px;
+    margin: 0 0 6px;
+  }
+  .modal p.desc { margin: 0 0 16px; color: var(--ink-soft); font-size: 13.5px; line-height: 1.55; }
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin-bottom: 5px;
+  }
+  .field input, .field select {
+    width: 100%;
+    padding: 9px 10px;
+    border-radius: 6px;
+    border: 1px solid var(--paper-line);
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .btn {
+    border: none;
+    border-radius: 6px;
+    padding: 9px 16px;
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+  .btn-ghost { background: transparent; color: var(--ink-soft); }
+  .btn-ghost:hover { background: var(--paper-line-soft); }
+  .btn-primary { background: var(--moss); color: var(--paper-raised); }
+  .btn-primary:hover { background: var(--moss-deep); }
+  .btn-danger { background: var(--rust); color: #fff; }
+  .btn-danger:hover { filter: brightness(0.92); }
+</style>
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark">🗂️</span>
+        <div>
+          <h1>Pocket Browser</h1>
+          <p class="tagline">A running log of the web you meant to come back to.</p>
+        </div>
+      </div>
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="searchInput" type="search" placeholder="Search your collection…" autocomplete="off" />
+      </div>
+      <button class="install-btn" id="installBtn" hidden>Install app</button>
+    </header>
+
+    <section class="capture">
+      <form id="captureForm">
+        <input id="urlInput" type="text" inputmode="url" placeholder="Paste a link to file it away…" autocomplete="off" />
+        <button type="submit" class="file-btn" id="fileBtn">File it</button>
+      </form>
+      <p class="capture-error" id="captureError" hidden></p>
+    </section>
+
+    <div class="layout">
+      <nav class="drawer" id="drawer"></nav>
+      <main>
+        <div class="shelf-heading">
+          <h2 id="shelfTitle">All sites</h2>
+          <span class="n" id="shelfCount"></span>
+        </div>
+        <div class="shelf" id="shelf"></div>
+      </main>
+    </div>
+  </div>
+
+  <div id="modalRoot"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var ICONS = {
+    pencil: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+    trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>',
+    plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>'
+  };
+
+  var TONES = ['var(--tone-1)','var(--tone-2)','var(--tone-3)','var(--tone-4)','var(--tone-5)','var(--tone-6)'];
+
+  function genId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  function hashStr(str) {
+    var h = 0;
+    for (var i = 0; i < str.length; i++) { h = (h * 31 + str.charCodeAt(i)) | 0; }
+    return Math.abs(h);
+  }
+  function toneFor(domain) { return TONES[hashStr(domain) % TONES.length]; }
+  function stampDate(ts) {
+    var d = new Date(ts), now = new Date();
+    var opts = { month: 'short', day: 'numeric' };
+    if (d.getFullYear() !== now.getFullYear()) opts.year = '2-digit';
+    return d.toLocaleDateString('en-US', opts);
+  }
+  function normalizeUrl(raw) {
+    var v = raw.trim();
+    if (!v) return null;
+    if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(v)) v = 'https://' + v;
+    try {
+      var u = new URL(v);
+      if (!u.hostname || u.hostname.indexOf('.') === -1) return null;
+      return u;
+    } catch (e) { return null; }
+  }
+
+  /* ---------------- storage backends ---------------- */
+
+  function LocalStore() {
+    var KEY = 'pocket-browser-data-v1';
+    var data = { folders: [], bookmarks: [] };
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) data = JSON.parse(raw);
+    } catch (e) {}
+    var folderListeners = [];
+    var bookmarkListeners = [];
+
+    function persist() {
+      try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) {}
+    }
+    function notifyFolders() {
+      var sorted = data.folders.slice().sort(function (a, b) { return a.createdAt - b.createdAt; });
+      folderListeners.forEach(function (fn) { fn(sorted); });
+    }
+    function notifyBookmarks() {
+      var sorted = data.bookmarks.slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
+      bookmarkListeners.forEach(function (fn) { fn(sorted); });
+    }
+
+    this.subscribeFolders = function (cb) {
+      folderListeners.push(cb);
+      notifyFolders();
+      return function () { folderListeners = folderListeners.filter(function (f) { return f !== cb; }); };
+    };
+    this.subscribeBookmarks = function (cb) {
+      bookmarkListeners.push(cb);
+      notifyBookmarks();
+      return function () { bookmarkListeners = bookmarkListeners.filter(function (f) { return f !== cb; }); };
+    };
+    this.addFolder = function (name) {
+      var id = genId();
+      data.folders.push({ id: id, name: name, createdAt: Date.now() });
+      persist(); notifyFolders();
+      return Promise.resolve(id);
+    };
+    this.renameFolder = function (id, name) {
+      var f = data.folders.find(function (x) { return x.id === id; });
+      if (f) f.name = name;
+      persist(); notifyFolders();
+      return Promise.resolve();
+    };
+    this.deleteFolder = function (id) {
+      data.folders = data.folders.filter(function (x) { return x.id !== id; });
+      data.bookmarks.forEach(function (b) { if (b.folderId === id) b.folderId = null; });
+      persist(); notifyFolders(); notifyBookmarks();
+      return Promise.resolve();
+    };
+    this.addBookmark = function (b) {
+      var id = genId();
+      data.bookmarks.push(Object.assign({ id: id, createdAt: Date.now() }, b));
+      persist(); notifyBookmarks();
+      return Promise.resolve(id);
+    };
+    this.updateBookmark = function (id, patch) {
+      var b = data.bookmarks.find(function (x) { return x.id === id; });
+      if (b) Object.assign(b, patch);
+      persist(); notifyBookmarks();
+      return Promise.resolve();
+    };
+    this.deleteBookmark = function (id) {
+      data.bookmarks = data.bookmarks.filter(function (x) { return x.id !== id; });
+      persist(); notifyBookmarks();
+      return Promise.resolve();
+    };
+  }
+
+  /* ---------------- state ---------------- */
+
+  var state = {
+    folders: [],
+    bookmarks: [],
+    foldersLoaded: false,
+    bookmarksLoaded: false,
+    currentFolder: 'all', // 'all' | 'unsorted' | folder id
+    query: ''
+  };
+  var store = null;
+
+  /* ---------------- modal helpers ---------------- */
+
+  var modalRoot = document.getElementById('modalRoot');
+
+  function closeModal() { modalRoot.innerHTML = ''; }
+
+  function openFormModal(opts) {
+    // opts: {title, desc, fields:[{id,label,type,value,options,placeholder}], confirmLabel, onConfirm}
+    var fieldsHtml = opts.fields.map(function (f) {
+      if (f.type === 'select') {
+        var optHtml = f.options.map(function (o) {
+          return '<option value="' + escapeHtml(o.value) + '"' + (o.value === f.value ? ' selected' : '') + '>' + escapeHtml(o.label) + '</option>';
+        }).join('');
+        return '<div class="field"><label for="mf-' + f.id + '">' + escapeHtml(f.label) + '</label><select id="mf-' + f.id + '">' + optHtml + '</select></div>';
+      }
+      return '<div class="field"><label for="mf-' + f.id + '">' + escapeHtml(f.label) + '</label><input id="mf-' + f.id + '" type="text" value="' + escapeHtml(f.value || '') + '" placeholder="' + escapeHtml(f.placeholder || '') + '" /></div>';
+    }).join('');
+
+    modalRoot.innerHTML =
+      '<div class="modal-backdrop" id="mBackdrop">' +
+        '<div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">' +
+          '<h3 id="mTitle">' + escapeHtml(opts.title) + '</h3>' +
+          (opts.desc ? '<p class="desc">' + escapeHtml(opts.desc) + '</p>' : '') +
+          fieldsHtml +
+          '<div class="modal-actions">' +
+            '<button class="btn btn-ghost" id="mCancel">Cancel</button>' +
+            '<button class="btn ' + (opts.danger ? 'btn-danger' : 'btn-primary') + '" id="mConfirm">' + escapeHtml(opts.confirmLabel) + '</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    var backdrop = document.getElementById('mBackdrop');
+    backdrop.addEventListener('click', function (e) { if (e.target === backdrop) closeModal(); });
+    document.getElementById('mCancel').addEventListener('click', closeModal);
+    document.getElementById('mConfirm').addEventListener('click', function () {
+      var values = {};
+      opts.fields.forEach(function (f) { values[f.id] = document.getElementById('mf-' + f.id).value; });
+      opts.onConfirm(values);
+    });
+    document.addEventListener('keydown', onEsc);
+    function onEsc(e) { if (e.key === 'Escape') { closeModal(); document.removeEventListener('keydown', onEsc); } }
+
+    var firstInput = modalRoot.querySelector('input, select');
+    if (firstInput) { firstInput.focus(); if (firstInput.select) firstInput.select(); }
+  }
+
+  function openConfirmModal(opts) {
+    modalRoot.innerHTML =
+      '<div class="modal-backdrop" id="mBackdrop">' +
+        '<div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">' +
+          '<h3 id="mTitle">' + escapeHtml(opts.title) + '</h3>' +
+          '<p class="desc">' + escapeHtml(opts.message) + '</p>' +
+          '<div class="modal-actions">' +
+            '<button class="btn btn-ghost" id="mCancel">Cancel</button>' +
+            '<button class="btn btn-danger" id="mConfirm">' + escapeHtml(opts.confirmLabel) + '</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    var backdrop = document.getElementById('mBackdrop');
+    backdrop.addEventListener('click', function (e) { if (e.target === backdrop) closeModal(); });
+    document.getElementById('mCancel').addEventListener('click', closeModal);
+    document.getElementById('mConfirm').addEventListener('click', function () { opts.onConfirm(); });
+    document.addEventListener('keydown', onEsc);
+    function onEsc(e) { if (e.key === 'Escape') { closeModal(); document.removeEventListener('keydown', onEsc); } }
+  }
+
+  /* ---------------- rendering ---------------- */
+
+  var drawerEl = document.getElementById('drawer');
+  var shelfEl = document.getElementById('shelf');
+  var shelfTitleEl = document.getElementById('shelfTitle');
+  var shelfCountEl = document.getElementById('shelfCount');
+
+  function countFor(target) {
+    if (target === 'all') return state.bookmarks.length;
+    if (target === 'unsorted') return state.bookmarks.filter(function (b) { return !b.folderId; }).length;
+    return state.bookmarks.filter(function (b) { return b.folderId === target; }).length;
+  }
+
+  function renderDrawer() {
+    var rows = [];
+    rows.push(drawerRow('all', 'All sites', countFor('all'), null));
+    rows.push(drawerRow('unsorted', 'Unsorted', countFor('unsorted'), null));
+    state.folders.forEach(function (f) {
+      rows.push(drawerRow(f.id, f.name, countFor(f.id), f));
+    });
+    drawerEl.innerHTML = rows.join('') +
+      '<button class="new-folder-btn" id="newFolderBtn">' + ICONS.plus + ' New folder</button>';
+
+    Array.prototype.forEach.call(drawerEl.querySelectorAll('.folder-tab'), function (el) {
+      el.addEventListener('click', function () {
+        state.currentFolder = el.getAttribute('data-target');
+        renderDrawer();
+        renderShelf();
+      });
+    });
+    Array.prototype.forEach.call(drawerEl.querySelectorAll('.rename-folder'), function (el) {
+      el.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var id = el.getAttribute('data-id');
+        var folder = state.folders.find(function (f) { return f.id === id; });
+        if (!folder) return;
+        openFormModal({
+          title: 'Rename folder',
+          fields: [{ id: 'name', label: 'Name', value: folder.name, placeholder: 'Folder name' }],
+          confirmLabel: 'Save name',
+          onConfirm: function (values) {
+            var name = values.name.trim();
+            if (!name) return;
+            store.renameFolder(id, name);
+            closeModal();
+          }
+        });
+      });
+    });
+    Array.prototype.forEach.call(drawerEl.querySelectorAll('.delete-folder'), function (el) {
+      el.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var id = el.getAttribute('data-id');
+        var folder = state.folders.find(function (f) { return f.id === id; });
+        if (!folder) return;
+        var n = countFor(id);
+        openConfirmModal({
+          title: 'Delete folder',
+          message: 'Deleting \u201c' + folder.name + '\u201d won\u2019t delete its ' + n + ' saved site' + (n === 1 ? '' : 's') + ' \u2014 they\u2019ll move to Unsorted.',
+          confirmLabel: 'Delete folder',
+          onConfirm: function () {
+            store.deleteFolder(id);
+            if (state.currentFolder === id) { state.currentFolder = 'all'; }
+            closeModal();
+          }
+        });
+      });
+    });
+    document.getElementById('newFolderBtn').addEventListener('click', function () {
+      openFormModal({
+        title: 'New folder',
+        fields: [{ id: 'name', label: 'Name', value: '', placeholder: 'e.g. Thesis sources' }],
+        confirmLabel: 'Create folder',
+        onConfirm: function (values) {
+          var name = values.name.trim();
+          if (!name) return;
+          store.addFolder(name);
+          closeModal();
+        }
+      });
+    });
+  }
+
+  function drawerRow(target, label, count, folder) {
+    var active = state.currentFolder === target;
+    var swatchStyle = folder ? ' style="background:' + toneFor(folder.id) + '"' : '';
+    var actions = folder ?
+      '<div class="folder-actions">' +
+        '<button class="icon-btn rename-folder" data-id="' + folder.id + '" title="Rename" aria-label="Rename ' + escapeHtml(folder.name) + '">' + ICONS.pencil + '</button>' +
+        '<button class="icon-btn danger delete-folder" data-id="' + folder.id + '" title="Delete" aria-label="Delete ' + escapeHtml(folder.name) + '">' + ICONS.trash + '</button>' +
+      '</div>' : '';
+    return '<div class="folder-row' + (active ? ' active' : '') + '">' +
+      '<button class="folder-tab" data-target="' + target + '"' + (active ? ' aria-current="page"' : '') + '>' +
+        '<span class="swatch"' + swatchStyle + '></span>' +
+        '<span>' + escapeHtml(label) + '</span>' +
+        '<span class="count">' + count + '</span>' +
+      '</button>' + actions +
+    '</div>';
+  }
+
+  function currentTitle() {
+    if (state.currentFolder === 'all') return 'All sites';
+    if (state.currentFolder === 'unsorted') return 'Unsorted';
+    var f = state.folders.find(function (x) { return x.id === state.currentFolder; });
+    return f ? f.name : 'All sites';
+  }
+
+  function visibleBookmarks() {
+    var list = state.bookmarks;
+    if (state.currentFolder === 'unsorted') list = list.filter(function (b) { return !b.folderId; });
+    else if (state.currentFolder !== 'all') list = list.filter(function (b) { return b.folderId === state.currentFolder; });
+    var q = state.query.trim().toLowerCase();
+    if (q) {
+      list = list.filter(function (b) {
+        return (b.title || '').toLowerCase().indexOf(q) !== -1 || (b.domain || '').toLowerCase().indexOf(q) !== -1;
+      });
+    }
+    return list;
+  }
+
+  var lastAddedId = null;
+
+  function renderShelf() {
+    shelfTitleEl.textContent = currentTitle();
+
+    if (!state.foldersLoaded || !state.bookmarksLoaded) {
+      shelfCountEl.textContent = '';
+      shelfEl.innerHTML = '<div class="empty-state">Opening your collection\u2026</div>';
+      return;
+    }
+
+    var list = visibleBookmarks();
+    shelfCountEl.textContent = list.length ? list.length + (list.length === 1 ? ' entry' : ' entries') : '';
+
+    if (list.length === 0) {
+      var msg;
+      if (state.query.trim()) msg = 'No matches for \u201c' + escapeHtml(state.query.trim()) + '\u201d.';
+      else if (state.currentFolder === 'all') msg = 'Nothing filed yet \u2014 paste a link above to start your collection.';
+      else if (state.currentFolder === 'unsorted') msg = 'Nothing unsorted. Everything you\u2019ve saved has a home.';
+      else msg = 'This folder\u2019s empty. File a new link here, or move one in from another folder.';
+      shelfEl.innerHTML = '<div class="empty-state">' + msg + '</div>';
+      return;
+    }
+
+    shelfEl.innerHTML = list.map(cardHtml).join('');
+
+    Array.prototype.forEach.call(shelfEl.querySelectorAll('.edit-bookmark'), function (el) {
+      el.addEventListener('click', function () { openEditBookmark(el.getAttribute('data-id')); });
+    });
+    Array.prototype.forEach.call(shelfEl.querySelectorAll('.delete-bookmark'), function (el) {
+      el.addEventListener('click', function () { openDeleteBookmark(el.getAttribute('data-id')); });
+    });
+
+    if (lastAddedId) {
+      var el = shelfEl.querySelector('[data-card-id="' + lastAddedId + '"]');
+      if (el) el.classList.add('entering');
+      lastAddedId = null;
+    }
+  }
+
+  function cardHtml(b) {
+    var domain = b.domain || '';
+    var initial = (domain.replace(/^www\./, '')[0] || '#').toUpperCase();
+    var folder = state.folders.find(function (f) { return f.id === b.folderId; });
+    var folderPill = folder ? '<span class="card-folder-pill">' + escapeHtml(folder.name) + '</span>' : '';
+    return '<article class="card" data-card-id="' + b.id + '">' +
+      '<div class="card-tag" style="background:' + toneFor(domain) + '">' + escapeHtml(initial) + '</div>' +
+      '<div class="card-body">' +
+        '<a class="card-title" href="' + escapeHtml(b.url) + '" target="_blank" rel="noopener noreferrer">' + escapeHtml(b.title || domain) + '</a>' +
+        '<p class="card-domain">' + escapeHtml(domain) + '</p>' +
+        folderPill +
+      '</div>' +
+      '<div class="card-stamp">' + stampDate(b.createdAt) + '</div>' +
+      '<div class="card-controls">' +
+        '<button class="icon-btn edit-bookmark" data-id="' + b.id + '" title="Edit" aria-label="Edit entry">' + ICONS.pencil + '</button>' +
+        '<button class="icon-btn danger delete-bookmark" data-id="' + b.id + '" title="Remove" aria-label="Remove entry">' + ICONS.trash + '</button>' +
+      '</div>' +
+    '</article>';
+  }
+
+  function openEditBookmark(id) {
+    var b = state.bookmarks.find(function (x) { return x.id === id; });
+    if (!b) return;
+    var options = [{ value: '', label: 'Unsorted' }].concat(state.folders.map(function (f) {
+      return { value: f.id, label: f.name };
+    }));
+    openFormModal({
+      title: 'Edit entry',
+      fields: [
+        { id: 'title', label: 'Title', value: b.title, placeholder: b.domain },
+        { id: 'folder', type: 'select', label: 'Folder', value: b.folderId || '', options: options }
+      ],
+      confirmLabel: 'Save changes',
+      onConfirm: function (values) {
+        var title = values.title.trim() || b.domain;
+        store.updateBookmark(id, { title: title, folderId: values.folder || null });
+        closeModal();
+      }
+    });
+  }
+
+  function openDeleteBookmark(id) {
+    var b = state.bookmarks.find(function (x) { return x.id === id; });
+    if (!b) return;
+    openConfirmModal({
+      title: 'Remove entry',
+      message: 'Remove \u201c' + (b.title || b.domain) + '\u201d from your collection?',
+      confirmLabel: 'Remove',
+      onConfirm: function () {
+        store.deleteBookmark(id);
+        closeModal();
+      }
+    });
+  }
+
+  /* ---------------- capture form ---------------- */
+
+  var captureForm = document.getElementById('captureForm');
+  var urlInput = document.getElementById('urlInput');
+  var fileBtn = document.getElementById('fileBtn');
+  var captureError = document.getElementById('captureError');
+
+  captureForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    captureError.hidden = true;
+    var u = normalizeUrl(urlInput.value);
+    if (!u) {
+      captureError.textContent = 'That doesn\u2019t look like a link yet \u2014 try pasting the full address.';
+      captureError.hidden = false;
+      return;
+    }
+    var domain = u.hostname.replace(/^www\./, '');
+    var folderId = (state.currentFolder !== 'all' && state.currentFolder !== 'unsorted') ? state.currentFolder : null;
+    store.addBookmark({ url: u.href, title: domain, domain: domain, folderId: folderId }).then(function (id) {
+      lastAddedId = id;
+      urlInput.value = '';
+      fileBtn.textContent = 'Filed';
+      fileBtn.classList.add('filed');
+      setTimeout(function () { fileBtn.textContent = 'File it'; fileBtn.classList.remove('filed'); }, 1100);
+    });
+  });
+
+  document.getElementById('searchInput').addEventListener('input', function (e) {
+    state.query = e.target.value;
+    renderShelf();
+  });
+
+  /* ---------------- boot ---------------- */
+
+  renderDrawer();
+  renderShelf();
+
+  store = new LocalStore();
+  store.subscribeFolders(function (folders) {
+    state.folders = folders;
+    state.foldersLoaded = true;
+    renderDrawer();
+    renderShelf();
+  });
+  store.subscribeBookmarks(function (bookmarks) {
+    state.bookmarks = bookmarks;
+    state.bookmarksLoaded = true;
+    renderShelf();
+  });
+
+  /* ---------------- installability ---------------- */
+
+  var installBtn = document.getElementById('installBtn');
+  var deferredPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.hidden = false;
+  });
+  installBtn.addEventListener('click', function () {
+    if (!deferredPrompt) return;
+    installBtn.hidden = true;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.finally(function () { deferredPrompt = null; });
+  });
+  window.addEventListener('appinstalled', function () {
+    installBtn.hidden = true;
+    deferredPrompt = null;
+  });
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+      navigator.serviceWorker.register('sw.js').catch(function (err) {
+        console.warn('Service worker registration failed:', err);
+      });
+    });
+  }
+})();
+</script>
+</body>
+</html>
