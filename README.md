@@ -25,12 +25,6 @@ npx serve .
 
 Then visit `http://localhost:8000`.
 
-## Deploy on GitHub Pages
-
-1. Create a repo and push these files to the root (or a `/docs` folder — either works, GitHub Pages serves plain static files with no build step).
-2. In the repo: **Settings → Pages** → set the source to that branch/folder → save.
-3. GitHub gives you a URL like `https://yourname.github.io/pocket-browser/`. Open it — since it's served over HTTPS with a manifest and service worker, your browser will offer to install it (an install icon in the address bar on desktop Chrome/Edge, or the in-app "Install app" button that appears once the browser's ready; on iOS Safari, use Share → Add to Home Screen).
-
 ## How data is stored
 
 Everything lives in the browser's `localStorage` — no login, no server, no sync between devices. That keeps the app dependency-free, but it does mean:
