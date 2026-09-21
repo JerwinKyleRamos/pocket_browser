@@ -1,0 +1,53 @@
+{
+  "name": "pocket-browser",
+  "productName": "Pocket Browser",
+  "version": "0.0.1",
+  "description": "A running log of the web you meant to come back to.",
+  "main": "electron/main.js",
+  "author": "JerwinKyleRamos",
+  "license": "UNLICENSED",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/JerwinKyleRamos/pocket_browser.git"
+  },
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --publish never"
+  },
+  "devDependencies": {
+    "electron": "latest",
+    "electron-builder": "^26.16.0"
+  },
+  "build": {
+    "appId": "com.jerwinkyleramos.pocketbrowser",
+    "productName": "Pocket Browser",
+    "icon": "icons/icon-512.png",
+    "directories": { "output": "dist" },
+    "files": [
+      "index.html",
+      "icons/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": ["nsis", "portable"]
+    },
+    "nsis": {
+      "artifactName": "PocketBrowser-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "PocketBrowser-Portable-${version}.${ext}"
+    },
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [{ "target": "dmg", "arch": ["x64", "arm64"] }],
+      "artifactName": "PocketBrowser-${version}-mac-${arch}.${ext}"
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "category": "Utility",
+      "artifactName": "PocketBrowser-${version}-linux-${arch}.${ext}"
+    }
+  }
+}

@@ -556,6 +556,7 @@
     if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(v)) v = 'https://' + v;
     try {
       var u = new URL(v);
+      if (u.protocol !== 'http:' && u.protocol !== 'https:') return null;
       if (!u.hostname || u.hostname.indexOf('.') === -1) return null;
       return u;
     } catch (e) { return null; }
@@ -568,7 +569,10 @@
     var data = { folders: [], bookmarks: [] };
     try {
       var raw = localStorage.getItem(KEY);
-      if (raw) data = JSON.parse(raw);
+      if (raw) {
+        var parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.folders) && Array.isArray(parsed.bookmarks)) data = parsed;
+      }
     } catch (e) {}
     var folderListeners = [];
     var bookmarkListeners = [];
@@ -996,7 +1000,7 @@
     deferredPrompt = null;
   });
 
-  if ('serviceWorker' in navigator) {
+  if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('sw.js').catch(function (err) {
         console.warn('Service worker registration failed:', err);
