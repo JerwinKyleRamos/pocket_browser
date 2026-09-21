@@ -38,8 +38,3 @@ Everything lives in the browser's `localStorage` — no login, no server, no syn
 - It won't follow you to a different browser or device.
 
 If you want real sync later, the natural next step is swapping the `LocalStore` object in `index.html` for calls to a backend of your choice (Firebase, Supabase, a small API of your own, etc.) — everything else in the app talks to storage through that one object, so it's a contained change.
-
-## Customizing
-
-- Colors, fonts, and layout are all in the `<style>` block at the top of `index.html` (CSS custom properties under `:root`, with a dark-mode override below).
-- Regenerate the icons with `python3 make_icons.py` if you change the color palette (requires Pillow: `pip install pillow`).
