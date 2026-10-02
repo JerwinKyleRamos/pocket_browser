@@ -976,6 +976,7 @@
   store.subscribeBookmarks(function (bookmarks) {
     state.bookmarks = bookmarks;
     state.bookmarksLoaded = true;
+    renderDrawer();
     renderShelf();
   });
 
